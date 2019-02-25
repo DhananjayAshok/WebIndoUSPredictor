@@ -1,0 +1,16 @@
+Immeditate Task
+	
+	
+	
+
+Short Term Task
+	Host on website - Django
+	Deploy as app - PyInstaller
+
+Overall Plan
+Checklist of features
+1. Save graphs as pickle DONE
+2. Download Data from online - Alpha Vantage Key MCD3GDSY1WYI9LA1 DONE
+3. Host on website
+4. Make into web app or a desktop app that can be run as an exe
+
