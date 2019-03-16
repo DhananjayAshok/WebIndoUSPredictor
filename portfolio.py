@@ -8,37 +8,27 @@ import datetime
 
 class Portfolio(object):
     """A collection of Stocks"""
-    def __init__(self, stocks: List[Tuple], dates: Tuple):
+    def __init__(self, stocks: List[Tuple[str, str, str]]):
         """
         Create a new Portfolio object
         stocks to be in format: (name, ticker, exchange)
-        dates: is in format ( (YYYY, MM, DD), (YYYY, MM, DD) ) with YYYY, MM and DD as integers
-            dates will be saved as a datetime object
         """
         self.stocks = stocks
         self.stocks = []
         for stock in stocks:
-            a = Stock(stock[0], stock[1],stock[2], dates)
+            a = Stock(stock[0], stock[1],stock[2])
             self.stocks.append(a)
-        o = datetime.datetime(dates[0][0], dates[0][1], dates[0][2])
-        n = datetime.datetime(dates[1][0], dates[1][1], dates[1][2])
-        self.dates = (o, n)
         return
 
-    def computeActions(self,method, date) -> Dict:
+    def computeActions(self,method) -> Dict:
         """
-        date: is in format (YYYY, MM, DD) with YYYY, MM and DD as integers
         Returns a dictionary: The output is a dictionary of format: {ticker: Strategy}
 
         """
-        date = datetime.datetime(date[0], date[1], date[2])
         final = {}
-        today = datetime.date.today()
-        if not utility.date_within_range(date, self.dates[0], self.dates[1]):
-            raise utility.OutDatedError
         for stock in self.stocks:
             stock.implimentAnalysis(method)
-            final[str(stock)] = stock.strategy
+            final[str(stock) + " on " + utility.represent_date(stock.end_date)] = stock.strategy
         return final
     
     def simulateAnalysis(self, method: str, start_date, frequency = 7)  -> Dict:

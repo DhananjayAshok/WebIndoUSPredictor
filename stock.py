@@ -87,7 +87,7 @@ Privately Will also
 """
     # Initializing and built ins
 #region
-    def __init__(self, name: str, ticker: str, exchange: str, dates: Tuple):
+    def __init__(self, name: str, ticker: str, exchange: str):
         """
         Creates also a Pandas Dataframe with the following 2 columns:        
             A date column with datetime objects within them,
@@ -96,16 +96,10 @@ Privately Will also
         If exchange is set to INTERNAL then there must be a preloaded pandas dataframe in local memory
             This df must be named ticker.csv
             dates must be a valid set of dates within the range of the initial date set
-        Note:
-            dates: is in format ( (YYYY, MM, DD), (YYYY, MM, DD) ) with YYYY, MM and DD as integers
-            dates will be saved as a datetime object
         """
         self.name = name
         self.ticker = ticker
         self.exchange = exchange
-        o = datetime(dates[0][0], dates[0][1], dates[0][2])
-        n = datetime(dates[1][0], dates[1][1], dates[1][2])
-        self.dates = (o, n)
         self.strategy = Strategy()
         attribute_dict = {
             'BSE': 'Close',
@@ -121,25 +115,24 @@ Privately Will also
         colors = ['#58ff15','#FFFF00','#24f8e5','#DD0048','#00ffdf'] # Neon Green, Neon Blue, Neon Red, Neon Yellow
         sns.set_palette(colors)
 
-        dates = pd.date_range(self.dates[0],self.dates[1])
+        #dates = pd.date_range(self.dates[0],self.dates[1])
         
         if exchange == "INTERNAL":
             self._initializeINTERNAL()
+            self.start_date, self.end_date = self.analyzeBoundary()
             return
       
         self.attribute = attribute_dict[exchange]
         
-        df = pd.DataFrame(index = dates)
-
-        
         dftemp = (method_dict[self.exchange]())
         dftemp = dftemp.rename(columns = {self.attribute: name})
-        self.df = (df.join(dftemp, how = 'inner'))[[self.name]]
+        self.df = dftemp[[self.name]]
         self.df.to_csv(f"{self.ticker}.csv", index_label = "Date")
-
+        self.start_date, self.end_date = self.analyzeBoundary()
     def _initializeBSE(self) -> pd.DataFrame: 
         """
-        Returns a pandas dataframe dftemp which needs to be renamed 
+        Returns a pandas dataframe dftemp which needs to be renamed
+        Note that the index of this df is already Date and the title is already DateTime
         """
         dftemp = quandl.get(f'BSE/{self.ticker}', api_key = 'sSGH7WY-GiPzryVyKS9y')
         return dftemp
@@ -150,24 +143,58 @@ Privately Will also
         return
     def _initializeNASDAQ(self) -> pd.DataFrame: 
         """
-        Returns a pandas dataframe dftemp which needs to be renamed and joined
+        Returns a pandas dataframe dftemp which needs to be renamed and joined. 
+        Note that the index column of dftemp is already "dates" but it is a string. We change it to a DateTime index
+        before returning it. 
         """        
         ts = TimeSeries(key='MCD3GDSY1WYI9LA1', output_format='pandas')
         dftemp, meta = ts.get_daily_adjusted(symbol=self.ticker, outputsize='full')
+        dftemp.index = dftemp.index.astype('datetime64', copy = False)
         return dftemp
-    def _initializeINTERNAL(self) -> pd.DataFrame:
+    def _initializeINTERNAL(self) -> None:
         """
         Returns a pandas dataframe dftemp which needs to be renamed and joined.
         To be used only when we know that a saved file already exists in local storage with the raw csv in it
         The raw csv to have format
         """
         df = pd.read_csv(f'{self.ticker}.csv', index_col = 'Date', parse_dates = True)
-        self.df = df.ix[ self.dates[0] :self.dates[1], :]
+        self.df = df
+    def analyzeBoundary(self)->Tuple[datetime, datetime]:
+        """
+        Returns the unbounded Tuple(start_date, end_date)
+        Precondition:
+            self.df exists
+        """
+        return self.df.index.values[0], self.df.index.values[-1]
+
     def __repr__(self):
         return f'Stock Object of :{self.name}'
     def __str__(self):
         return f'{self.name}'
-    
+    def extract_section(self, starting: datetime, ending: datetime)-> None:
+        """
+        Accepts a starting and ending datetime. If the dates are not within the current data raises OutofDateException
+        If ending date is within the data but not actually present i.e no trades on that day. raises NotIncludedError
+        If dates within data the stock.df object is mutated to only have that section(inclusive). 
+        Also updates variables start_date and end_date to match
+        """
+        starting, ending = np.datetime64(starting), np.datetime64(ending)
+        if not utility.date_within_inclusive_range(starting, self.start_date, self.end_date) or not utility.date_within_inclusive_range(ending, self.start_date, self.end_date):
+            raise utility.OutDatedError(f"starting - {utility.represent_date(starting)}. start data - {utility.represent_date(self.start_date)} end data -{utility.represent_date(self.end_date)}")
+        if ending not in self.df.index.values:
+            #print(type(ending), type(self.df.index.values[0]))
+            #print(f"This is ending {ending}.")
+            #print(f"This is the bool {ending not in self.df.index.values}")
+            #print(f"Heres values {self.df.index.values}")
+            raise utility.NotIncludedError(utility.represent_date(ending))
+        #print(ending in self.df.index.values)
+        #print(starting in self.df.index.values)
+        self.df = self.df[starting: ending]
+        self.start_date, self.end_date = self.analyzeBoundary()
+
+
+
+
 #endregion
 
    # Computation
@@ -411,10 +438,11 @@ Privately Will also
         method_to_run = methoddict[method]
         method_to_run(info)
 
-    def simulateAnalysis(self, method: str, start_date: Tuple, frequency = 7) -> float:
+    def simulateAnalysis(self, method: str, start_date: Tuple[int, int, int], frequency = 7) -> float:
         """
         Returns the % gain/ loss of the stock if 'method' was used starting from 'start_date'
         Default Returns -1 if the start_date is less than 2 months from the first date in the stock data
+        Insufficient Data if start_date is within 2 months of self.start_date
 
         start_date: is in format (YYYY, MM, DD) with YYYY, MM and DD as integers
         frequency: integer that represents the number of days between each trade
@@ -424,21 +452,30 @@ Privately Will also
         1. Bollinger Band Analysis : 'bollingerbands'
         """
         starting = datetime(start_date[0], start_date[1], start_date[2])
-        if not utility.date_within_range(starting, self.dates[0], self.dates[1]):
-            raise utility.OutDatedError
-        if not utility.date_within_days(starting, self.dates[0], 62):
+        #print(type(starting))
+        #print(type(self.start_date))
+        #print(type(self.end_date))
+        if not utility.date_within_inclusive_range(starting, self.start_date, self.end_date):
+            raise utility.OutDatedError(f"Trying start date of analysis - {utility.represent_date(starting)} but data starts only from {utility.represent_date(self.start_date)} and ends by {utility.represent_date(self.end_date)}")
+        if not utility.date_within_days(starting, self.start_date, 62):
             raise utility.InsufficientDataError
         
         initial_capital = 100000
         capital = initial_capital
         n_stocks = 0
         price = 1 # to change scope 1 not relevant
-        for date in pd.date_range(starting, self.dates[1], freq= f"{frequency}D"):
-            a = Stock(self.name, self.ticker, "INTERNAL", ((self.dates[0].year, self.dates[0].month, self.dates[0].day), (date.year, date.month, date.day)))
+        for date in pd.date_range(starting, self.end_date, freq= f"{frequency}D"):
+            a = Stock(self.name, self.ticker, "INTERNAL")
+            try:
+                a.extract_section(self.start_date, date)
+            except utility.NotIncludedError:
+                #print("Fails This")
+                continue
             a.implimentAnalysis(method)
             price = a.df.iloc[-1][0] # Code to get the last element in the last row
             final_action = a.strategy.action* a.strategy.confidence
             #print(f"Before {date}, capital is {capital}, going under action {action}")
+            #print(f'actually reaches here for {date}')
             if final_action > 0 :
                 if price > final_action * capital:
                     #print("Price > capital")

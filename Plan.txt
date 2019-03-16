@@ -1,6 +1,22 @@
 Immeditate Task
-	
-	
+	Long term change. Take away dates and remake the entire application to only work on most recent dates
+	Plan - places which use dates
+		Stock Initializer
+			FIXED
+			Internal
+				FIXED
+			External
+				FIXED
+		Stock Simulate Analysis
+			FIXED
+		Portfolio Initializer
+			FIXED
+		Portfolio Compute Action
+			FIXED
+		Portfolio Simulate Analysis
+			FIXED
+		Personal Implimentation
+			FIXED
 	
 
 Short Term Task

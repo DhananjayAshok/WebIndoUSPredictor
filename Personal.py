@@ -10,7 +10,7 @@ year = date.today().year
 month = date.today().month
 day = date.today().day
 
-personal = Portfolio([("Reliance", "BOM500325", "BSE"), ("HDFC", "BOM500180", "BSE"), ("SBI", "BOM500112", "BSE")], ((year-1, month, day), (year, month, day)))
+personal = Portfolio([("Reliance", "BOM500325", "BSE"), ("HDFC", "BOM500180", "BSE"), ("SBI", "BOM500112", "BSE")])
 
-print(personal.computeActions('bollingerbands',(year, month, 21)))
+print(personal.computeActions('bollingerbands'))
 personal.display_Graph('bollingerbands')
