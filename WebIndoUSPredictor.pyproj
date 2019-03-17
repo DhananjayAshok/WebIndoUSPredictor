@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>5f022021-c998-43bb-ba9a-6675bade4963</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Personal.py</StartupFile>
+    <StartupFile>User.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>

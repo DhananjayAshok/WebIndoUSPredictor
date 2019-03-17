@@ -89,11 +89,9 @@ class OutDatedError(Exception):
     def __str__(self):
         return f"Attempting to call a date that is not within the stock data. {self.message}"
 
-
 class InsufficientDataError(Exception):
     def __str__(self):
         return "Amount of data given is insufficient to predict action"
-
 
 class NotIncludedError(Exception):
     def __init__(self, date = ""):
@@ -101,4 +99,11 @@ class NotIncludedError(Exception):
         self.date = date
     def __str__(self):
         return f"Date {self.date} is not actively within data. (Within range, but no trades)"
-        return ""
+        
+class NotFoundError(Exception):
+    def __str__(self):
+        return "Error. The Ticker You Entered Is Not From That Exchange. Data Not Found Error."
+
+class OtherImportError(Exception):
+    def __str__(self):
+        return "Some Import Error Occured"

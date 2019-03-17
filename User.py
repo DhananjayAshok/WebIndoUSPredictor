@@ -3,15 +3,18 @@ from portfolio import Portfolio
 from typing import List, Dict, Tuple
 import datetime
 
-#a = Stock("HDFC","BOM500180", "BSE")
+a = Stock("HDFC","BOM500180", "BSE")
 #print(a.df)
+#print(a.get_current_price())
+#print(type(a.get_current_price()))
 
 #print(a.simulateAnalysis('bollingerbands', (2019, 4, 1)))
-#p = Portfolio([("HDFC","BOM500180", "BSE"), ("Apple Industries", "AAPL", "NASDAQ")])
-#print(p.simulateAnalysis("bollingerbands", (2017, 4, 22)))
-#p.display_Graph("bollingerbands")
 
-#sherman = Portfolio([("Electronic Arts", "EA", "NASDAQ"), ("Baidu","BIDU","NASDAQ"), ("Adobe","ADBE","NASDAQ"), ("Amazon", "AMZN", "NASDAQ"), ("Bill Gates Penis", "MSFT", "NASDAQ")])
+sherman = Portfolio([("Electronic Arts", "EA", "NASDAQ", 1), ("Baidu","BIDU","NASDAQ", 1), ("Adobe","ADBE","NASDAQ", 1), ("Amazon", "AMZN", "NASDAQ", 1), ("Bill Gates Penis", "MSFT", "NASDAQ", 1)], capital = 1000)
+#sherman.buy_stock(("HDFC", "BOM500180", "BSE", 1))
+print(sherman.capital)
+#sherman.sell_stock("Electronic Arts", 2)
+#print(sherman.get_init_data())
 #print(sherman.computeActions("bollingerbands"))
 #print(sherman.simulateAnalysis('bollingerbands', (2018, 3, 16)))
 #sherman.display_Graph("bollingerbands")

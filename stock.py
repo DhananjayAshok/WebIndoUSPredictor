@@ -101,14 +101,13 @@ Privately Will also
         self.ticker = ticker
         self.exchange = exchange
         self.strategy = Strategy()
+        
         attribute_dict = {
             'BSE': 'Close',
-            'NSE': 'Adj Close',
             'NASDAQ': '5. adjusted close',
             }
         method_dict = {
             'BSE': self._initializeBSE,
-            'NSE': self._initializeNSE,
             'NASDAQ': self._initializeNASDAQ,
             }
         sns.set(rc={'axes.facecolor':'#111010', 'figure.facecolor':'#111010','axes.labelcolor':'#fbffc1', 'text.color': '#fbffc1', 'ytick.color': 'white', 'xtick.color': 'white'})
@@ -124,7 +123,9 @@ Privately Will also
       
         self.attribute = attribute_dict[exchange]
         
+        
         dftemp = (method_dict[self.exchange]())
+
         dftemp = dftemp.rename(columns = {self.attribute: name})
         self.df = dftemp[[self.name]]
         self.df.to_csv(f"{self.ticker}.csv", index_label = "Date")
@@ -134,13 +135,13 @@ Privately Will also
         Returns a pandas dataframe dftemp which needs to be renamed
         Note that the index of this df is already Date and the title is already DateTime
         """
-        dftemp = quandl.get(f'BSE/{self.ticker}', api_key = 'sSGH7WY-GiPzryVyKS9y')
+        try:
+            dftemp = quandl.get(f'BSE/{self.ticker}', api_key = 'sSGH7WY-GiPzryVyKS9y')
+        except quandl.errors.quandl_error.NotFoundError:
+            raise utility.NotFoundError
+        except:
+            raise utility.OtherImportError
         return dftemp
-    def _initializeNSE(self): # Returns pd dataframe
-        """
-        Returns a pandas dataframe dftemp which needs to be renamed 
-        """
-        return
     def _initializeNASDAQ(self) -> pd.DataFrame: 
         """
         Returns a pandas dataframe dftemp which needs to be renamed and joined. 
@@ -148,8 +149,12 @@ Privately Will also
         before returning it. 
         """        
         ts = TimeSeries(key='MCD3GDSY1WYI9LA1', output_format='pandas')
-        dftemp, meta = ts.get_daily_adjusted(symbol=self.ticker, outputsize='full')
+        try:
+            dftemp, meta = ts.get_daily_adjusted(symbol=self.ticker, outputsize='full')
+        except:
+            raise utility.OtherImportError
         dftemp.index = dftemp.index.astype('datetime64', copy = False)
+
         return dftemp
     def _initializeINTERNAL(self) -> None:
         """
@@ -159,14 +164,6 @@ Privately Will also
         """
         df = pd.read_csv(f'{self.ticker}.csv', index_col = 'Date', parse_dates = True)
         self.df = df
-    def analyzeBoundary(self)->Tuple[datetime, datetime]:
-        """
-        Returns the unbounded Tuple(start_date, end_date)
-        Precondition:
-            self.df exists
-        """
-        return self.df.index.values[0], self.df.index.values[-1]
-
     def __repr__(self):
         return f'Stock Object of :{self.name}'
     def __str__(self):
@@ -196,6 +193,24 @@ Privately Will also
 
 
 #endregion
+
+    # Utility
+    #region
+    def analyzeBoundary(self)->Tuple[datetime, datetime]:
+        """
+        Returns the unbounded Tuple(start_date, end_date)
+        Precondition:
+            self.df exists
+        """
+        return self.df.index.values[0], self.df.index.values[-1]
+
+    def get_current_price(self)->float:
+        """
+        Returns the latest recorded price on the data
+        As numpy float64
+        """
+        return self.df.iloc[-1][0]
+    #endregion
 
    # Computation
    #region
@@ -384,7 +399,7 @@ Privately Will also
 
    #endregion
 
-   #Utility
+   # Testing and Internal Only
    #region
     def test_Bollinger_Parameter_Sensitivity(self, testParameter, _timeFrame = 20, _bandSeparation = 2, _overlapMarginRate = 0.0075, _predictionMarginRate = 0.0225):
         """
@@ -410,6 +425,8 @@ Privately Will also
         return None
 
    #endregion
+
+    # Access Functions
 
     def implimentAnalysis(self, method: str) -> Tuple:
         """
