@@ -20,7 +20,6 @@ class Portfolio(object):
             n is always non negative
         """
         self.capital = capital
-        self.stocks = stocks
         self.stocks = {}
         for stock in stocks:
             a = Stock(stock[0], stock[1],stock[2])
@@ -44,19 +43,23 @@ class Portfolio(object):
         wanted_no = stock[3]
         if free:
             self.stocks[stock[0]][1] += wanted_no
-            return
-        price = self.stocks[stock[0]][0].get_current_price()
-        possible_no = self.capital // price
-        if wanted_no <= possible_no:
-            print("wanted smaller")
-            self.stocks[stock[0]][1] += wanted_no
-            self.capital -= price* wanted_no
         else:
-            if possible_no == 0:
-                self.stocks.pop(str(stock[0]))
+            price = self.stocks[stock[0]][0].get_current_price()
+            possible_no = self.capital // price
+            if wanted_no <= possible_no:
+                #print("wanted smaller")
+                self.stocks[stock[0]][1] += wanted_no
+                self.capital -= price* wanted_no
             else:
-                self.stocks[stock[0]][1] += possible_no
-                self.capital -= price * possible_no
+                if possible_no == 0:
+                    pass
+                    #self.stocks.pop(str(stock[0]))
+                else:
+                    self.stocks[stock[0]][1] += possible_no
+                    self.capital -= price * possible_no
+        if self.stocks[stock[0]][1] == 0:
+            self.stocks.pop(str(stock[0]))
+        return
         
     def sell_stock(self, stock_name: str, amount:int, free = False):
         """
