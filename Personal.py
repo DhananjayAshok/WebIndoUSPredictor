@@ -12,7 +12,8 @@ day = date.today().day
 personal = Portfolio([("Reliance", "BOM500325", "BSE", 1), ("HDFC", "BOM500180", "BSE", 1), ("SBI", "BOM500112", "BSE", 1)])
 
 print(personal.computeActions('bollingerbands'))
-personal.display_Graph('bollingerbands')
+figs = personal.create_Graph('bollingerbands')
+plt.show()
 
 """
 ---------------------------------------------------------------

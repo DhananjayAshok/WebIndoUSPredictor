@@ -2,7 +2,6 @@
 #region
 from typing import List, Set, Tuple, Any, Dict
 import matplotlib.pyplot as plt
-import pickle as pl
 import seaborn as sns
 import pandas as pd
 import numpy as np
@@ -378,7 +377,7 @@ Privately Will also
 
    # Graphical
    #region
-    def _GraphBollingerBands(self, info: Tuple):
+    def _GraphBollingerBands(self, info: Tuple) -> plt.figure:
         """
         Generates a plot and saves it to a pickle location as method.pickle(TYPE IDK YET)
 
@@ -393,9 +392,7 @@ Privately Will also
         ax.set_ylabel(basic[2])
         ax.legend(loc = "upper left")
         #Must Make Save
-        pl.dump(ax, open('bollingerbands.pickle',  'wb'))
-        plt.show()
-        return None
+        return ax.figure
 
    #endregion
 
@@ -453,7 +450,7 @@ Privately Will also
             'bollingerbands': self._GraphBollingerBands
             }
         method_to_run = methoddict[method]
-        method_to_run(info)
+        return method_to_run(info)
 
     def simulateAnalysis(self, method: str, start_date: Tuple[int, int, int], frequency = 7) -> float:
         """

@@ -1,6 +1,7 @@
 from typing import Tuple, List, Dict, Any, Union, Optional
 from stock import Stock
 import utility
+import matplotlib.pyplot as plt
 import datetime
 
 
@@ -132,10 +133,13 @@ class Portfolio(object):
 
         return final
 
-    def display_Graph(self, method: str):
+    def create_Graph(self, method: str)->Dict:
+        final = {}
         for name in self.stocks:
             info = self.stocks[name][0].implimentAnalysis(method)
-            self.stocks[name][0].create_Graph(method,info)
+            final[name] = self.stocks[name][0].create_Graph(method,info)
+        return final
+
     #endregion
 
     # Portfolio Specific Functions
